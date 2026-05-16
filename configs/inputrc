@@ -1,0 +1,7 @@
+# Readline config for Bash prompt editing.
+set editing-mode vi
+set show-mode-in-prompt on
+
+# Cursor shape by vi mode: bar in insert mode, block in command mode.
+set vi-ins-mode-string \1\e[6 q\2
+set vi-cmd-mode-string \1\e[2 q\2
