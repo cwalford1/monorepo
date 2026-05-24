@@ -121,3 +121,9 @@ fi
 
 # Use vi-style editing at the Bash prompt.
 set -o vi
+
+# compiles and runs project with passed name
+function run {
+    /home/cwalford/swdev/monorepo/projects/$1/bin/build.sh
+    /home/cwalford/swdev/monorepo/projects/$1/bin/main.out ${@:2}
+}
