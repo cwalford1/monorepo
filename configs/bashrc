@@ -8,6 +8,14 @@ case $- in
 *) return ;;
 esac
 
+# Prefer user-owned npm globals over system-wide installs.
+if [ -d "$HOME/.local/bin" ]; then
+    case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) PATH="$HOME/.local/bin:$PATH" ;;
+    esac
+fi
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -127,3 +135,25 @@ function run {
     /home/cwalford/swdev/monorepo/projects/$1/bin/build.sh
     /home/cwalford/swdev/monorepo/projects/$1/bin/main.out ${@:2}
 }
+
+alias re_source="source ~/.bashrc"
+
+# If in subdir of git repo, outputs absolute path to repo root.
+function git_root {
+    git rev-parse --show-toplevel 2>/dev/null
+}
+
+DEFAULT_ROOT=/home/cwalford/swdev/monorepo/
+# pushds current git root or default monorepo root
+function root {
+    local repo_root
+    repo_root="$(git_root)"
+    if [[ -n "$repo_root" ]]; then
+        pushd "$repo_root"
+        return
+    fi
+    pushd "$DEFAULT_ROOT"
+}
+
+# Editor for composing prompts and other visual editing tasks.
+export VISUAL=nvim

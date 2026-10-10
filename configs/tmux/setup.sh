@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -e
-if [ ! -d "~/.tmux/plugins/tpm" ]; then
-    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
+mkdir -p "$HOME/.config/tmux/plugins"
+
+if [ ! -d "$HOME/.config/tmux/plugins/tpm" ]; then
+    git clone https://github.com/tmux-plugins/tpm "$HOME/.config/tmux/plugins/tpm"
 fi

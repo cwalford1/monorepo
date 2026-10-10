@@ -11,8 +11,13 @@
 #include <sstream>
 #include <string>
 #include <sys/inotify.h>
+#include <sys/poll.h>
+#include <system_error>
 #include <unistd.h>
 #include <utility>
+#include <vector>
+
+static constexpr size_t MAX_EVENT_SIZE = sizeof(inotify_event) + NAME_MAX + 1;
 
 enum class Event {
   /*  events suitable for MASK parameter of INOTIFY_ADD_WATCH.  */
@@ -84,14 +89,22 @@ struct InotifyEventDeleter {
   }
 };
 
+struct INotifyEvent {
+  int wd;           /* Watch descriptor.  */
+  uint32_t mask;    /* Watch mask.  */
+  uint32_t cookie;  /* Cookie to synchronize two events.  */
+  std::string name; /* Name.  */
+};
+
 class FileWatcher {
   using FileDescriptor = int;
   using EventPtr = std::unique_ptr<inotify_event, InotifyEventDeleter>;
 
 public:
-  // TODO: use poll / epoll to not block.
-  // add IN_NONBLOCK  for non-blocking event reads
-  FileWatcher() : in_fd(inotify_init1(IN_CLOEXEC)) {};
+  // TODO: use poll / epoll to read in data when it's available?
+  FileWatcher() : in_fd(inotify_init1(IN_CLOEXEC | IN_NONBLOCK)), buffer_() {
+    buffer_.reserve(MAX_EVENT_SIZE);
+  };
   FileWatcher(const FileWatcher &) = delete;
   const FileWatcher &operator=(const FileWatcher &) = delete;
   FileWatcher(FileWatcher &&other) : in_fd(std::exchange(other.in_fd, -2)) {}
@@ -105,26 +118,35 @@ public:
   }
 
   void add_watch_path(const std::filesystem::path path) {
-    if (inotify_add_watch(in_fd, path.c_str(), IN_CREATE) < 0) {
+    if (inotify_add_watch(in_fd, path.c_str(), IN_ALL_EVENTS) < 0) {
       std::print("aborting as add watch returned -1. errno={0}", errno);
     }
-    assert(is_valid() && "FileWatcher used after move.");
   }
 
-  EventPtr read_one() {
-    constexpr size_t buffer_size = sizeof(inotify_event) + NAME_MAX + 1;
-    auto out = std::make_unique_for_overwrite<std::byte[]>(buffer_size);
-    auto n = read(in_fd, out.get(), buffer_size);
-    if (n < 0) {
-      std::println("read_error={}", strerror(errno));
-      return nullptr;
-    }
-    return EventPtr(reinterpret_cast<inotify_event *>(out.release()));
+  INotifyEvent read_one() {
+    buffer_all();
+    poll(struct pollfd * fds, nfds_t nfds, int timeout)
   }
 
 private:
   FileDescriptor in_fd;
+  std::vector<std::byte> buffer_;
   bool is_valid() { return in_fd >= 0; }
+  int n = 0;
+  void buffer_all() {
+    // TODO: optimize out unnecessary resizes;
+    do {
+      auto initial_size = buffer_.size();
+      // make valid room for up to MAX_EVENT_SIZE bytes
+      buffer_.resize(buffer_.size() + MAX_EVENT_SIZE);
+      // read in data
+      n = read(in_fd, buffer_.data() + initial_size, MAX_EVENT_SIZE);
+      if (n < 0) {
+        throw std::system_error(errno, std::generic_category(),
+                                "Error adding inotify watch");
+      }
+      // trim back buffer length to initial size + new bytes
+      buffer_.resize(initial_size + n);
+    } while (n != 0);
+  }
 };
-
-int watch_file(std::string path) { return 0; }
