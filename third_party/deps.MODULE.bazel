@@ -1,0 +1,17 @@
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "raylib",
+    build_file = "//third_party:raylib.BUILD.bazel",
+    sha256 = "2b3ee1e2120c7a0796b33062c7e9a694dd8a8caa56a96319ac8c8ecf54a90d0b",
+    strip_prefix = "raylib-6.0",
+    urls = ["https://github.com/raysan5/raylib/archive/refs/tags/6.0.tar.gz"],
+)
+
+http_archive(
+    name = "raylib_cpp",
+    build_file = "//third_party:raylib-cpp.BUILD.bazel",
+    sha256 = "7eacb90823449ff4d8785807c6cd08d852492be9bf6b1d85113724e0e85f2cc4",
+    strip_prefix = "raylib-cpp-6.0.3",
+    urls = ["https://github.com/RobLoach/raylib-cpp/archive/refs/tags/v6.0.3.tar.gz"],
+)

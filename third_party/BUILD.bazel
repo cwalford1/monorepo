@@ -1,0 +1,5 @@
+# Build definitions supplied to downloaded third-party repositories.
+exports_files([
+    "raylib.BUILD.bazel",
+    "raylib-cpp.BUILD.bazel",
+])

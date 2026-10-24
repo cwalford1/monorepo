@@ -1,0 +1,49 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+cc_library(
+    name = "raylib",
+    srcs = [
+        "src/rcore.c",
+        "src/rglfw.c",
+        "src/rshapes.c",
+        "src/rtext.c",
+        "src/rtextures.c",
+    ],
+    hdrs = glob([
+        "src/raylib.h",
+        "src/raymath.h",
+        "src/rlgl.h",
+    ]),
+    includes = [
+        "src",
+        "src/external/glfw/include",
+    ],
+    linkopts = [
+        "-lGL",
+        "-lX11",
+        "-lm",
+        "-lpthread",
+        "-ldl",
+        "-lrt",
+    ],
+    local_defines = [
+        "PLATFORM_DESKTOP_GLFW",
+        "GRAPHICS_API_OPENGL_33",
+        "_GLFW_X11",
+        "SUPPORT_MODULE_RAUDIO=0",
+        "SUPPORT_MODULE_RMODELS=0",
+        "SUPPORT_CAMERA_SYSTEM=0",
+    ],
+    # Included implementation files are inputs, not separate compilation units.
+    textual_hdrs = [
+        "src/config.h",
+        "src/rgestures.h",
+        "src/platforms/rcore_desktop_glfw.c",
+    ] + glob([
+        "src/external/*.h",
+        "src/external/glfw/include/**/*.h",
+        "src/external/glfw/src/*.h",
+        "src/external/glfw/src/*.c",
+    ]),
+    visibility = ["//visibility:public"],
+)

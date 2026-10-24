@@ -138,6 +138,11 @@ function run {
 
 alias re_source="source ~/.bashrc"
 
+alias refresh_compile_commands='bazel run @hedron_compile_commands//:refresh_all'
+
+# Preserve terminal scrollback when running Codex in tmux.
+alias codex='codex --no-alt-screen'
+
 # If in subdir of git repo, outputs absolute path to repo root.
 function git_root {
     git rev-parse --show-toplevel 2>/dev/null
@@ -153,6 +158,9 @@ function root {
         return
     fi
     pushd "$DEFAULT_ROOT"
+}
+function tutorials {
+  pushd /home/cwalford/swdev/tutorials/
 }
 
 # Editor for composing prompts and other visual editing tasks.
